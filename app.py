@@ -1,29 +1,47 @@
-# -------------------------------------------
-# Adalo 연동용 Gemini 교정 REST API 서버
-# -------------------------------------------
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import os
 import google.generativeai as genai
 
 app = Flask(__name__)
+CORS(app)
 
-# -------- 1. API 키 설정 --------
+print("🚀 Flask 앱 초기화 중...")
+
 GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
-
 if not GOOGLE_API_KEY:
-    raise EnvironmentError("환경변수 GOOGLE_API_KEY가 설정되어 있지 않습니다. Replit Secrets에서 추가하세요.")
+    print("❌ GOOGLE_API_KEY 환경변수 없음. Render 환경변수 탭 확인 필요.")
+    raise EnvironmentError("Missing GOOGLE_API_KEY environment variable.")
+else:
+    print("✅ GOOGLE_API_KEY 로드 성공")
 
-genai.configure(api_key=GOOGLE_API_KEY)
-model = genai.GenerativeModel("models/gemini-2.5-flash")
+try:
+    genai.configure(api_key=GOOGLE_API_KEY)
+    model = genai.GenerativeModel("models/gemini-2.5-flash")
+    print("✅ Gemini 모델 불러오기 성공")
+except Exception as e:
+    print(f"❌ Gemini 모델 초기화 실패: {e}")
 
-# -------- 2. 교정 엔드포인트 --------
+@app.route("/", methods=["GET"])
+def home():
+    print("📡 '/' 경로 호출됨")
+    return jsonify({
+        "message": "Gemini 교정 API 작동 중",
+        "endpoint": "/api/correct",
+        "method": "POST",
+        "body_format": {"text": "문장 내용"}
+    })
+
 @app.route("/api/correct", methods=["POST"])
-def correct_text():
+def correct():
+    print("📩 /api/correct 호출됨")
     try:
-        data = request.get_json()
-        text = data.get("text", "").strip()
+        data = request.get_json(force=True)
+        text = (data.get("text") or "").strip()
+        print(f"입력 받은 텍스트: {text}")
         if not text:
-            return jsonify({"error": "text 필드가 비어 있습니다."}), 400
+            print("⚠️ text 필드 누락됨")
+            return jsonify({"error": "text 필드가 필요합니다."}), 400
 
         instruction = (
             "너는 문장을 교정하는 AI야. "
@@ -31,9 +49,11 @@ def correct_text():
             "이유와 대체 표현을 친근하게 설명해줘. "
             "교정 문장과 설명 사이에는 '|' 기호를 넣어."
         )
-
         prompt = f"{instruction}\n\n사용자 입력: {text}\nAI 교정:"
+        print("🧠 Gemini API 호출 시작...")
+
         response = model.generate_content(prompt)
+        print("✅ Gemini 응답 수신 완료")
 
         result = ""
         if hasattr(response, "text") and response.text:
@@ -43,22 +63,12 @@ def correct_text():
         else:
             result = "(응답 없음)"
 
+        print(f"출력 결과(앞부분): {result[:120]}")
         return jsonify({"result": result})
-
     except Exception as e:
+        print(f"❌ 오류 발생: {e}")
         return jsonify({"error": str(e)}), 500
 
-
-# -------- 3. 테스트용 기본 루트 --------
-@app.route("/", methods=["GET"])
-def home():
-    return jsonify({
-        "message": "Gemini 교정 API 작동 중",
-        "endpoint": "/api/correct",
-        "method": "POST",
-        "body_format": {"text": "문장 내용"}
-    })
-
-
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    print("🏁 Flask 앱 실행 시작")
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
