@@ -1,18 +1,17 @@
-# API 호출
+# 1️⃣ API 호출
 $response = Invoke-WebRequest -Uri "https://gemini-adalo-api.onrender.com/api/correct" `
   -Method POST `
-  -Headers @{ "Content-Type" = "application/json" } `
+  -Headers @{ "Content-Type" = "application/json"; "Accept-Charset" = "UTF-8" } `
   -Body '{"text":"오늘 너무 피곤하다"}'
 
-# JSON 응답 
+# 2️⃣ JSON 변환
 $json = $response.Content | ConvertFrom-Json
 
-# UTF-8 인코딩 변환 (한글 깨짐 방지)
-$original = [System.Text.Encoding]::UTF8.GetString([System.Text.Encoding]::Default.GetBytes($json.original))
-$corrected = [System.Text.Encoding]::UTF8.GetString([System.Text.Encoding]::Default.GetBytes($json.corrected))
-$reason = [System.Text.Encoding]::UTF8.GetString([System.Text.Encoding]::Default.GetBytes($json.reason))
-
-# 결과 출력
-Write-Host "`n🧾 원문:" $original
-Write-Host "`n✅ 교정된 문장:" $corrected
-Write-Host "`n📘 교정 이유:" $reason
+# 3️⃣ 결과 출력 (PowerShell 7은 UTF-8 기본값이므로 추가 인코딩 불필요)
+Write-Host ""
+Write-Host "🧾 원문:" $json.original
+Write-Host ""
+Write-Host "✅ 교정된 문장:" $json.corrected
+Write-Host ""
+Write-Host "📘 교정 이유:" $json.reason
+Write-Host ""
