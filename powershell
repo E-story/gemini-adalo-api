@@ -1,17 +1,18 @@
-# UTF-8 고정 인코딩
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$OutputEncoding = [System.Text.Encoding]::UTF8
-
-# 보낼 텍스트를 UTF-8 JSON으로 직접 인코딩
-$uri = "https://gemini-adalo-api.onrender.com/api/correct"
-$text = "오늘 너무 피곤하다"
-$body = @{ text = $text } | ConvertTo-Json -Depth 3
-$bytes = [System.Text.Encoding]::UTF8.GetBytes($body)
-
-$response = Invoke-WebRequest -Uri $uri `
+# API 호출
+$response = Invoke-WebRequest -Uri "https://gemini-adalo-api.onrender.com/api/correct" `
   -Method POST `
-  -Headers @{ "Content-Type" = "application/json; charset=utf-8" } `
-  -Body $bytes
+  -Headers @{ "Content-Type" = "application/json" } `
+  -Body '{"text":"오늘 너무 피곤하다"}'
 
+# JSON 응답 
 $json = $response.Content | ConvertFrom-Json
-$json
+
+# UTF-8 인코딩 변환 (한글 깨짐 방지)
+$original = [System.Text.Encoding]::UTF8.GetString([System.Text.Encoding]::Default.GetBytes($json.original))
+$corrected = [System.Text.Encoding]::UTF8.GetString([System.Text.Encoding]::Default.GetBytes($json.corrected))
+$reason = [System.Text.Encoding]::UTF8.GetString([System.Text.Encoding]::Default.GetBytes($json.reason))
+
+# 결과 출력
+Write-Host "`n🧾 원문:" $original
+Write-Host "`n✅ 교정된 문장:" $corrected
+Write-Host "`n📘 교정 이유:" $reason
