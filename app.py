@@ -45,10 +45,9 @@ def correct():
 
         instruction = (
             "너는 문장을 교정하는 AI야. "
-            "청소년 대화에서 비속어나 공격적 표현을 친구 사이에 적합하고 부드럽게 바꿔줘."
-            "이유와 대체 표현을 친근하게 설명해줘."
-            "만약 이미 문장이 괜찮다면 문장을 교정하지 않고 그냥 출력해도 되. 교정한 이유는 '교정할 내용이 없습니다' 로 하고."
-            "교정 문장을 출력할 때는 무조건 다음 양식을 지켜 '교정 결과:'이런 거 넣지 말고: [교정된 문장] | [교정한 이유] 단 실제 출력할 때에는 []를 제거해. '|' 기호는 포함하고."
+            "청소년 대화에서 비속어나 공격적 표현을 부드럽게 바꿔줘. "
+            "이유와 대체 표현을 친근하게 설명해줘. "
+            "교정 문장과 설명 사이에는 반드시 '|' 기호를 넣어."
         )
         prompt = f"{instruction}\n\n사용자 입력: {text}\nAI 교정:"
         print("🧠 Gemini API 호출 시작...")
@@ -56,19 +55,41 @@ def correct():
         response = model.generate_content(prompt)
         print("✅ Gemini 응답 수신 완료")
 
-        result = ""
+        result_text = ""
         if hasattr(response, "text") and response.text:
-            result = response.text.strip()
+            result_text = response.text.strip()
         elif hasattr(response, "candidates"):
-            result = response.candidates[0].content.parts[0].text.strip()
+            result_text = response.candidates[0].content.parts[0].text.strip()
         else:
-            result = "(응답 없음)"
+            result_text = "(응답 없음)"
 
-        print(f"출력 결과(앞부분): {result[:120]}")
-        return jsonify({"result": result})
+        print(f"출력 결과(앞부분): {result_text[:120]}")
+
+        # -------------------------------
+        # | 기호를 기준으로 분리
+        # -------------------------------
+        if "|" in result_text:
+            parts = result_text.split("|", 1)
+            corrected_sentence = parts[0].strip()
+            reason = parts[1].strip()
+        else:
+            corrected_sentence = result_text
+            reason = "교정 이유를 찾을 수 없습니다."
+
+        print(f"교정 문장: {corrected_sentence}")
+        print(f"교정 이유: {reason}")
+
+        # JSON 형태로 Adalo에서 쉽게 처리 가능하도록 반환
+        return jsonify({
+            "original": text,
+            "corrected": corrected_sentence,
+            "reason": reason
+        })
+
     except Exception as e:
         print(f"❌ 오류 발생: {e}")
         return jsonify({"error": str(e)}), 500
+
 
 if __name__ == "__main__":
     print("🏁 Flask 앱 실행 시작")
