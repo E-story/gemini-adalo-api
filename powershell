@@ -1,29 +1,17 @@
-# 1️⃣ API URL 지정
+# UTF-8 고정 인코딩
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+
+# 보낼 텍스트를 UTF-8 JSON으로 직접 인코딩
 $uri = "https://gemini-adalo-api.onrender.com/api/correct"
+$text = "오늘 너무 피곤하다"
+$body = @{ text = $text } | ConvertTo-Json -Depth 3
+$bytes = [System.Text.Encoding]::UTF8.GetBytes($body)
 
-# 2️⃣ 테스트용 문장 입력
-$body = @{
-    text = "오늘 너무 피곤하다"
-} | ConvertTo-Json -Depth 3
-
-# 3️⃣ API 요청 보내기
 $response = Invoke-WebRequest -Uri $uri `
-    -Method POST `
-    -Headers @{ "Content-Type" = "application/json" } `
-    -Body $body
+  -Method POST `
+  -Headers @{ "Content-Type" = "application/json; charset=utf-8" } `
+  -Body $bytes
 
-# 4️⃣ 한글 깨짐 방지 및 JSON 변환
-$json = $response.Content | Out-String | ConvertFrom-Json
-
-# 5️⃣ 보기 좋게 출력
-Write-Host "`n🧾 원문:" -ForegroundColor Cyan
-Write-Host $json.original -ForegroundColor White
-
-Write-Host "`n✅ 교정된 문장:" -ForegroundColor Green
-Write-Host $json.corrected -ForegroundColor Yellow
-
-Write-Host "`n📘 교정 이유:" -ForegroundColor Blue
-Write-Host $json.reason -ForegroundColor White
-
-# 6️⃣ (선택) 전체 JSON 구조 보기
-# Write-Output $json | ConvertTo-Json -Depth 5
+$json = $response.Content | ConvertFrom-Json
+$json
