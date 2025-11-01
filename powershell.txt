@@ -5,10 +5,6 @@ $response = Invoke-WebRequest -Uri "https://gemini-adalo-api.onrender.com/api/co
 
 $json = $response.Content | ConvertFrom-Json
 
-Write-Host ""
 Write-Host "🧾 원문:" $json.original
-Write-Host ""
 Write-Host "✅ 교정된 문장:" $json.corrected
-Write-Host ""
 Write-Host "📘 교정 이유:" $json.reason
-Write-Host ""
