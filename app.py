@@ -22,6 +22,11 @@ try:
 except Exception as e:
     print(f"❌ Gemini 모델 초기화 실패: {e}")
 
+
+@app.route("/", methods=["GET"])
+def home():
+    print("📡 '/' 경로 호출됨")
+
 @app.route("/api/correct", methods=["POST"])
 def correct():
     print("📩 /api/correct 호출됨")
