@@ -1,13 +1,10 @@
-# 1️⃣ API 호출
 $response = Invoke-WebRequest -Uri "https://gemini-adalo-api.onrender.com/api/correct" `
   -Method POST `
   -Headers @{ "Content-Type" = "application/json"; "Accept-Charset" = "UTF-8" } `
   -Body '{"text":"오늘 너무 피곤하다"}'
 
-# 2️⃣ JSON 변환
 $json = $response.Content | ConvertFrom-Json
 
-# 3️⃣ 결과 출력 (PowerShell 7은 UTF-8 기본값이므로 추가 인코딩 불필요)
 Write-Host ""
 Write-Host "🧾 원문:" $json.original
 Write-Host ""
