@@ -55,9 +55,6 @@ def correct():
 
         print(f"출력 결과(앞부분): {result_text[:120]}")
 
-        # -------------------------------
-        # | 기호를 기준으로 분리
-        # -------------------------------
         if "|" in result_text:
             parts = result_text.split("|", 1)
             corrected_sentence = parts[0].strip()
@@ -69,7 +66,6 @@ def correct():
         print(f"교정 문장: {corrected_sentence}")
         print(f"교정 이유: {reason}")
 
-        # JSON 형태로 Adalo에서 쉽게 처리 가능하도록 반환
         return jsonify({
             "original": text,
             "corrected": corrected_sentence,
