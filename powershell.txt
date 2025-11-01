@@ -27,4 +27,4 @@ Write-Host "`n🧾 원문:" $json.original
 Write-Host "✅ 교정된 문장:" $json.corrected
 Write-Host "📘 교정 이유:" $json.reason
 
-# 해당 코드는 chat gpt가 제작한 코드입니다. 독학으로 공부하는 거라 이거까지 스스로 하긴 너무 힘들었어요ㅠㅠ
+# 해당 코드는 chat gpt가 제작한 코드입니다. 최대한 직접 해볼려고 노력했는데 독학으로 공부하는 거라 이거까지 스스로 하긴 너무 힘들었어요ㅠㅠ
