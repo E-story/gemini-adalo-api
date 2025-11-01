@@ -1,10 +1,30 @@
-$response = Invoke-WebRequest -Uri "https://gemini-adalo-api.onrender.com/api/correct" `
-  -Method POST `
-  -Headers @{ "Content-Type" = "application/json"; "Accept-Charset" = "UTF-8" } `
-  -Body '{"text":"오늘 너무 피곤하다"}'
+# 🔹 API 주소 설정
+$uri = "https://gemini-adalo-api.onrender.com/api/correct"
 
+# 🔹 요청 헤더 설정 (UTF-8 명시)
+$headers = @{
+    "Content-Type" = "application/json; charset=utf-8"
+    "Accept-Charset" = "UTF-8"
+}
+
+# 🔹 사용자 입력 받기
+$text = Read-Host "교정할 문장을 입력하세요"
+
+# 🔹 JSON 본문 생성 (PowerShell 7에서는 Encoding 옵션 필요 없음)
+$body = @{ text = $text } | ConvertTo-Json
+
+# 🔹 UTF-8로 인코딩된 바이트 배열로 변환 (명시적으로 UTF-8 적용)
+$bodyBytes = [System.Text.Encoding]::UTF8.GetBytes($body)
+
+# 🔹 API 호출 (UTF-8 명시 & 매번 새로운 세션)
+$response = Invoke-WebRequest -Uri $uri -Method POST -Headers $headers -Body $bodyBytes -UseBasicParsing
+
+# 🔹 JSON 응답 파싱
 $json = $response.Content | ConvertFrom-Json
 
-Write-Host "🧾 원문:" $json.original
+
+Write-Host "`n🧾 원문:" $json.original
 Write-Host "✅ 교정된 문장:" $json.corrected
 Write-Host "📘 교정 이유:" $json.reason
+
+# 해당 코드는 chat gpt가 제작한 코드입니다. 독학으로 공부하는 거라 이거까지 스스로 하긴 너무 힘들었어요ㅠㅠ
