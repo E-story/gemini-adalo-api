@@ -25,6 +25,12 @@ except Exception as e:
 @app.route("/", methods=["GET"])
 def home():
     print("📡 '/' 경로 호출됨")
+    return jsonify({
+        "message": "Gemini 교정 API 작동 중",
+        "endpoint": "/api/correct",
+        "method": "POST",
+        "body_format": {"text": "문장 내용"}
+    })
 
 @app.route("/api/correct", methods=["POST"])
 def correct():
