@@ -17,7 +17,7 @@ else:
 
 try:
     genai.configure(api_key=GOOGLE_API_KEY)
-    model = genai.GenerativeModel("models/gemini-2.5-flash")
+    model = genai.GenerativeModel("models/gemini-2.5-flash-lite")
     print("✅ Gemini 모델 불러오기 성공")
 except Exception as e:
     print(f"❌ Gemini 모델 초기화 실패: {e}")
