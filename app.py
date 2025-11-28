@@ -2,6 +2,8 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
 import google.generativeai as genai
+import json
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
@@ -22,6 +24,24 @@ try:
 except Exception as e:
     print(f"❌ Gemini 모델 초기화 실패: {e}")
 
+USAGE_FILE = "usage.json"
+DAILY_LIMIT = 30
+API_LIMIT = 1000   # Google Gemini 무료 한도
+
+def load_usage():
+    if not os.path.exists(USAGE_FILE):
+        return {"date": "", "count": 0}
+
+    with open(USAGE_FILE, "r", encoding="utf-8") as f:
+        try:
+            return json.load(f)
+        except:
+            return {"date": "", "count": 0}
+
+def save_usage(data):
+    with open(USAGE_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f)
+
 @app.route("/", methods=["GET"])
 def home():
     print("📡 '/' 경로 호출됨")
@@ -34,6 +54,34 @@ def home():
 
 @app.route("/api/correct", methods=["POST"])
 def correct():
+    usage = load_usage()
+    today = datetime.now().strftime("%Y-%m-%d")
+
+    # 날짜 바뀌면 초기화
+    if usage["date"] != today:
+        usage = {"date": today, "count": 0}
+        save_usage(usage)
+
+    # 일일 30회 초과 시 차단
+    if usage["count"] >= DAILY_LIMIT:
+        print("⛔ 일일 30회 요청 초과됨")
+        return jsonify({
+            "error": "오늘의 무료 사용량(30회)을 모두 사용했습니다. 내일 다시 이용해주세요."
+        }), 429
+
+    # API 총 한도 초과 시 차단
+    if usage["count"] >= API_LIMIT:
+        print("⛔ API 전체 무료 한도(1000회) 초과")
+        return jsonify({
+            "error": "AI 무료 API 한도가 모두 소진되어 서비스가 중단되었습니다."
+        }), 429
+
+    # 여기까지 통과하면 정상 요청 → 카운트 증가
+    usage["count"] += 1
+    save_usage(usage)
+
+    print(f"🔢 현재 요청 수: {usage['count']}회")
+
     print("📩 /api/correct 호출됨")
     try:
         data = request.get_json(force=True)
