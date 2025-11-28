@@ -57,6 +57,8 @@ def home():
 
 @app.route("/api/correct", methods=["POST"])
 def correct():
+    if request.method == "OPTIONS":
+        return jsonify({"message": "preflight ok"}), 200
     usage = load_usage()
     today = datetime.now().strftime("%Y-%m-%d")
 
